@@ -1,0 +1,12 @@
+ultralytics
+opencv-python
+numpy
+fastapi
+uvicorn
+pydantic[email]
+pydantic-settings
+python-multipart
+passlib[argon2]
+sqlalchemy
+psycopg2-binary
+python-jose
