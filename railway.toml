@@ -1,0 +1,19 @@
+# Railway configuration for AI Learning Companion Backend
+# Uses optimized Dockerfile to stay under 4GB image limit
+
+[build]
+builder = "dockerfile"
+dockerfilePath = "./Dockerfile.railway"
+
+[deploy]
+startCommand = "cd ai-engine && python run.py"
+healthcheckPath = "/"
+healthcheckTimeout = 100
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 10
+
+# Environment variables (set these in Railway dashboard)
+# Required:
+# - DATABASE_URL
+# - SECRET_KEY
+# - CORS_ORIGINS

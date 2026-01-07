@@ -1,0 +1,34 @@
+# Optimized requirements for Railway deployment
+# Reduces Docker image size significantly
+
+# Ultralytics YOLO (includes necessary dependencies)
+ultralytics
+
+# OpenCV headless (no GUI dependencies - much lighter)
+# Use this instead of opencv-python
+opencv-python-headless
+
+# Core numerical library
+numpy
+
+# FastAPI and server
+fastapi
+uvicorn[standard]
+
+# Data validation
+pydantic[email]
+pydantic-settings
+
+# File upload support
+python-multipart
+
+# Authentication
+passlib[argon2]
+python-jose[cryptography]
+
+# Database
+sqlalchemy
+psycopg2-binary
+
+# WebSocket support
+websockets

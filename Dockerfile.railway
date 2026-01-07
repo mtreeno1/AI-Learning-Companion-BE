@@ -1,0 +1,86 @@
+# Optimized Backend Dockerfile for Railway
+# Reduces image size from 8.1 GB to ~1.5-2.5 GB
+# Target: Under Railway's 4 GB image limit
+
+# Build stage
+FROM python:3.10-slim AS builder
+
+WORKDIR /app
+
+# Install only build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+   gcc \
+   g++ \
+   && rm -rf /var/lib/apt/lists/*
+
+# Copy and install Python dependencies
+COPY requirements.txt .
+
+# Install CPU-only PyTorch and dependencies
+# This is much lighter than GPU version (4-5x smaller)
+RUN pip install --no-cache-dir --user \
+   torch torchvision --index-url https://download.pytorch.org/whl/cpu && \
+   pip install --no-cache-dir --user -r requirements.txt
+
+# Runtime stage
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Install only runtime dependencies (minimal)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+   libglib2.0-0 \
+   libsm6 \
+   libxext6 \
+   libxrender1 \
+   libgomp1 \
+   libgl1-mesa-glx \
+   curl \
+   && rm -rf /var/lib/apt/lists/* \
+   && apt-get clean \
+   && rm -rf /tmp/* /var/tmp/*
+
+# Copy Python packages from builder
+COPY --from=builder /root/.local /root/.local
+
+# Make sure scripts in .local are usable
+ENV PATH=/root/.local/bin:$PATH
+
+# Copy application code
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p models recordings
+
+# Download YOLO models at runtime (not during build to keep image smaller)
+# Models are small (~6MB each) so runtime download is fine
+RUN if [ ! -f models/yolov8n.pt ]; then \
+   curl -L https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt \
+   -o models/yolov8n.pt; \
+   fi && \
+   if [ ! -f models/yolov8n-pose.pt ]; then \
+   curl -L https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n-pose.pt \
+   -o models/yolov8n-pose.pt; \
+   fi
+
+# Remove any cached files
+RUN find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true && \
+   find . -type f -name "*.pyc" -delete && \
+   find . -type f -name "*.pyo" -delete && \
+   rm -rf /root/.cache
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV RECORDINGS_PATH=/app/recordings
+ENV PORT=8000
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+   CMD curl -f http://localhost:8000/ || exit 1
+
+# Run the application
+CMD ["python", "run.py"]
