@@ -22,7 +22,7 @@ class FocusScorer:
         # Tracking state
         self.last_update_time = time.time()
         self.distraction_start_time = None
-        self. last_violation_time = None
+        self.last_violation_time = None
         
         # Event tracking (for time-based penalties)
         self.left_seat_start = None
@@ -49,12 +49,12 @@ class FocusScorer:
         # Calculate penalties
         total_penalty = 0.0
         
-        # 1. Phone detected (discrete penalty)
+        # 1.Phone detected (discrete penalty)
         if events.get('phone_detected', False):
             total_penalty += PENALTY_PHONE_DETECTED
             self.last_violation_time = current_time
         
-        # 2. Left seat (discrete penalty - chỉ áp dụng 1 lần khi mới rời)
+        # 2.Left seat (discrete penalty - chỉ áp dụng 1 lần khi mới rời)
         if events.get('left_seat', False):
             if self.left_seat_start is None:
                 # Mới rời chỗ ngồi → trừ điểm
@@ -65,7 +65,7 @@ class FocusScorer:
             # Quay lại chỗ ngồi → reset
             self.left_seat_start = None
         
-        # 3. Recovery (nếu không có vi phạm)
+        # 3.Recovery (nếu không có vi phạm)
         recovery = 0.0
         if total_penalty == 0 and not any(events.values()):
             recovery = min(RECOVERY_RATE_PER_SEC * delta_t, MAX_RECOVERY_PER_UPDATE)
@@ -78,20 +78,20 @@ class FocusScorer:
         if total_penalty == 0 and not any(events.values()):
             self.distraction_start_time = None
         
-        # 4. Update raw score
+        # 4.Update raw score
         self.score_raw = max(0, min(100, self.score_raw - total_penalty + recovery))
         
-        # 5. Apply EMA smoothing
-        self.score = self.ema.update(self. score_raw)
+        # 5.Apply EMA smoothing
+        self.score = self.ema.update(self.score_raw)
         
-        # 6. Save to history
+        # 6.Save to history
         self.history.append({
             'timestamp': current_time,
             'score': self.score,
             'score_raw': self.score_raw,
             'penalty': total_penalty,
             'recovery': recovery,
-            'events': events. copy()
+            'events': events.copy()
         })
         
         self.last_update_time = current_time
@@ -128,7 +128,7 @@ class FocusScorer:
         """Reset về trạng thái ban đầu"""
         self.score = INITIAL_FOCUS_SCORE
         self.score_raw = INITIAL_FOCUS_SCORE
-        self. ema. reset()
+        self.ema.reset()
         self.last_update_time = time.time()
         self.distraction_start_time = None
         self.last_violation_time = None
@@ -141,10 +141,10 @@ class FocusScorer:
         if not self.history:
             return {}
         
-        scores = [h['score'] for h in self. history]
+        scores = [h['score'] for h in self.history]
         
         # Đếm số lần vi phạm từng loại
-        phone_violations = sum(1 for h in self. history if h['events']. get('phone_detected', False))
+        phone_violations = sum(1 for h in self.history if h['events'].get('phone_detected', False))
         left_seat_violations = sum(1 for h in self.history if h['events'].get('left_seat', False))
         
         return {
@@ -155,5 +155,5 @@ class FocusScorer:
             'total_violations': sum(1 for h in self.history if any(h['events'].values())),
             'phone_detected_count': phone_violations,
             'left_seat_count': left_seat_violations,
-            'duration_seconds': self.history[-1]['timestamp'] - self. history[0]['timestamp']
+            'duration_seconds': self.history[-1]['timestamp'] - self.history[0]['timestamp']
         }

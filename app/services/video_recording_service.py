@@ -2,7 +2,7 @@
 Video Recording Service - Server-side video recording for AI Learning Companion
 
 This service handles real-time video recording on the backend to avoid overloading 
-the browser. It records high-quality video while streaming lightweight snapshots 
+the browser.It records high-quality video while streaming lightweight snapshots 
 to the frontend.
 
 Features:
@@ -51,7 +51,7 @@ class VideoRecordingService:
             'quality': 95,  # High quality (0-100)
         }
         
-        logger.info(f"Video recording service initialized. Storage: {self.storage_path}")
+        logger.info(f"Video recording service initialized.Storage: {self.storage_path}")
     
     def start_recording(
         self, 

@@ -11,7 +11,7 @@ def make_aware(dt: Optional[datetime]) -> Optional[datetime]:
         return None
     if dt.tzinfo is None:
         # Naive datetime, assume UTC
-        return dt. replace(tzinfo=timezone.utc)
+        return dt.replace(tzinfo=timezone.utc)
     return dt
 
 

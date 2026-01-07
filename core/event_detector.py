@@ -22,7 +22,7 @@ class EventDetector:
         
     def detect_events(
         self,
-        frame: np. ndarray,
+        frame: np.ndarray,
         det_results,
         pose_results,
         det_model,
@@ -42,10 +42,10 @@ class EventDetector:
             'left_seat': False
         }
         
-        # 1. Phone Detection
+        # 1.Phone Detection
         events['phone_detected'] = self._detect_phone(det_results, det_model)
         
-        # 2. Person Detection (để xác định left seat)
+        # 2.Person Detection (để xác định left seat)
         person_detected = self._detect_person(pose_results)
         
         if person_detected:
@@ -111,14 +111,14 @@ class EventDetector:
                 return False
             
             # Get keypoints
-            kpts = xy_data[0]. cpu().numpy()
+            kpts = xy_data[0].cpu().numpy()
             
             if len(kpts) == 0:
                 return False
             
             # Check if at least one keypoint is visible (not [0, 0])
             # Nose (index 0) is usually most reliable
-            if kpts. shape[0] > 0 and kpts[0][0] > 0 and kpts[0][1] > 0:
+            if kpts.shape[0] > 0 and kpts[0][0] > 0 and kpts[0][1] > 0:
                 return True
             
             # Fallback: check if any keypoint is visible
@@ -141,7 +141,7 @@ class EventDetector:
             
             if self.no_face_start is None:
                 # Bắt đầu đếm thời gian không thấy người
-                self. no_face_start = current_time
+                self.no_face_start = current_time
                 return False
             
             # Tính thời gian không thấy người

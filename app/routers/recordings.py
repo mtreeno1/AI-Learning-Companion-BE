@@ -62,7 +62,7 @@ async def start_recording(
     try:
         width, height = map(int, resolution.split('x'))
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid resolution format. Use WIDTHxHEIGHT (e.g., 1920x1080)")
+        raise HTTPException(status_code=400, detail="Invalid resolution format.Use WIDTHxHEIGHT (e.g., 1920x1080)")
     
     # Start recording service
     video_service = get_video_recording_service()

@@ -2,42 +2,46 @@
 
 ## Overview
 
-The AI Learning Companion now includes a backend video recording system that enables high-quality video recording without overloading the browser. This implementation follows best practices for computer vision systems.
+The AI Learning Companion now includes a backend video recording system that enables high-quality video recording without overloading the browser.This implementation follows best practices for computer vision systems.
 
 ## Architecture
 
 ### Key Principles (from requirements)
 
-1. **Backend Processing (Server-Side)** - Best Solution
-   - Video processing is done on the server using OpenCV
-   - High-quality recording (Full HD, configurable FPS)
-   - Videos saved directly to disk storage
-   - Can be extended to cloud storage (S3, Azure Blob)
+1.**Backend Processing (Server-Side)** - Best Solution
 
-2. **Optimized Browser Streaming**
-   - Browser sends low FPS snapshots (5 FPS) via WebSocket
-   - Server records at high FPS (30 FPS) while processing snapshots
-   - Only metadata and detection results sent back to browser
-   - Minimal browser overhead
+- Video processing is done on the server using OpenCV
+- High-quality recording (Full HD, configurable FPS)
+- Videos saved directly to disk storage
+- Can be extended to cloud storage (S3, Azure Blob)
 
-3. **Workflow**
-   ```
-   Camera (Browser) → WebSocket (5 FPS snapshots) → Server
-                                                      ↓
-                                        AI Detection + Recording (30 FPS)
-                                                      ↓
-                                        Save to Disk (MP4)
-                                                      ↓
-   Browser ← Detection Results + Stats ← Server
-   ```
+2.**Optimized Browser Streaming**
+
+- Browser sends low FPS snapshots (5 FPS) via WebSocket
+- Server records at high FPS (30 FPS) while processing snapshots
+- Only metadata and detection results sent back to browser
+- Minimal browser overhead
+
+3.**Workflow**
+
+```
+Camera (Browser) → WebSocket (5 FPS snapshots) → Server
+                                                   ↓
+                                     AI Detection + Recording (30 FPS)
+                                                   ↓
+                                     Save to Disk (MP4)
+                                                   ↓
+Browser ← Detection Results + Stats ← Server
+```
 
 ## Components
 
-### 1. VideoRecordingService (`app/services/video_recording_service.py`)
+### 1.VideoRecordingService (`app/services/video_recording_service.py`)
 
 Core service for managing video recording:
 
 **Features:**
+
 - Start/stop recording for sessions
 - Configurable FPS, resolution, codec
 - Thread-safe operations
@@ -45,6 +49,7 @@ Core service for managing video recording:
 - File management and cleanup
 
 **Default Configuration:**
+
 ```python
 {
     'fps': 30.0,           # High FPS for quality
@@ -55,6 +60,7 @@ Core service for managing video recording:
 ```
 
 **Usage:**
+
 ```python
 from app.services.video_recording_service import get_video_recording_service
 
@@ -74,11 +80,12 @@ service.write_frame(session_id, frame_array)
 result = service.stop_recording(session_id)
 ```
 
-### 2. VideoRecording Model (`app/models/video_recording.py`)
+### 2.VideoRecording Model (`app/models/video_recording.py`)
 
 Database model for storing recording metadata:
 
 **Fields:**
+
 - `recording_id`: Unique identifier
 - `session_id`: Link to learning session
 - `filename`, `filepath`: File information
@@ -87,11 +94,12 @@ Database model for storing recording metadata:
 - `file_size_bytes`: Storage size
 - `cloud_storage_url`, `cloud_storage_provider`: Optional cloud storage
 
-### 3. Recording API Endpoints (`app/routers/recordings.py`)
+### 3.Recording API Endpoints (`app/routers/recordings.py`)
 
 RESTful API for managing recordings:
 
 #### Start Recording
+
 ```http
 POST /api/recordings/sessions/{session_id}/start
 Authorization: Bearer <token>
@@ -102,12 +110,14 @@ Query Parameters:
 ```
 
 #### Stop Recording
+
 ```http
 POST /api/recordings/sessions/{session_id}/stop
 Authorization: Bearer <token>
 ```
 
 #### List Recordings
+
 ```http
 GET /api/recordings/sessions/{session_id}
 GET /api/recordings/  # All user recordings
@@ -115,116 +125,138 @@ Authorization: Bearer <token>
 ```
 
 #### Download Recording
+
 ```http
 GET /api/recordings/{recording_id}/download
 Authorization: Bearer <token>
 ```
 
 #### Delete Recording
+
 ```http
 DELETE /api/recordings/{recording_id}
 Authorization: Bearer <token>
 ```
 
-### 4. WebSocket Integration
+### 4.WebSocket Integration
 
 The WebSocket endpoint (`/api/focus/ws/{session_id}`) has been enhanced:
 
 **Query Parameter:**
+
 - `enable_recording`: Boolean to enable frame writing
 
 **Behavior:**
-1. Browser sends frames at 5 FPS (200ms interval)
-2. Server writes frames to video file at 30 FPS (interpolates/duplicates frames)
-3. Server runs AI detection on each frame
-4. Server sends detection results + recording status back
+1.Browser sends frames at 5 FPS (200ms interval)
+2.Server writes frames to video file at 30 FPS (interpolates/duplicates frames)
+3.Server runs AI detection on each frame
+4.Server sends detection results + recording status back
 
 **Response includes:**
+
 ```json
 {
   "recording": {
     "enabled": true,
     "active": true
-  },
-  // ... other detection data
+  }
+  // ...other detection data
 }
 ```
 
 ## Usage Flow
 
-### 1. Start a Session with Recording
+### 1.Start a Session with Recording
 
 **Frontend:**
+
 ```javascript
 // Create session
-const response = await fetch('http://localhost:8000/api/focus/sessions', {
-  method: 'POST',
+const response = await fetch("http://localhost:8000/api/focus/sessions", {
+  method: "POST",
   headers: {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
   },
   body: JSON.stringify({
     session_name: "Study Session",
     subject: "Math",
-    initial_score: 100
-  })
+    initial_score: 100,
+  }),
 });
 const { session_id } = await response.json();
 
 // Start recording
-await fetch(`http://localhost:8000/api/recordings/sessions/${session_id}/start?fps=30&resolution=1920x1080`, {
-  method: 'POST',
-  headers: { 'Authorization': `Bearer ${token}` }
-});
+await fetch(
+  `http://localhost:8000/api/recordings/sessions/${session_id}/start?fps=30&resolution=1920x1080`,
+  {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  }
+);
 
 // Connect WebSocket with recording enabled
-const ws = new WebSocket(`ws://localhost:8000/api/focus/ws/${session_id}?enable_recording=true`);
+const ws = new WebSocket(
+  `ws://localhost:8000/api/focus/ws/${session_id}?enable_recording=true`
+);
 ```
 
-### 2. During Session
+### 2.During Session
 
 - Browser captures and sends frames at 5 FPS
 - Server writes frames to video file at 30 FPS
 - Server performs AI detection
 - Browser receives detection results
 
-### 3. End Session
+### 3.End Session
 
 **Frontend:**
+
 ```javascript
 // Stop recording
-await fetch(`http://localhost:8000/api/recordings/sessions/${session_id}/stop`, {
-  method: 'POST',
-  headers: { 'Authorization': `Bearer ${token}` }
-});
+await fetch(
+  `http://localhost:8000/api/recordings/sessions/${session_id}/stop`,
+  {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  }
+);
 
 // End session
 await fetch(`http://localhost:8000/api/focus/sessions/${session_id}/end`, {
-  method: 'POST',
-  headers: { 'Authorization': `Bearer ${token}` },
-  body: JSON.stringify({ status: "completed" })
+  method: "POST",
+  headers: { Authorization: `Bearer ${token}` },
+  body: JSON.stringify({ status: "completed" }),
 });
 
 // Close WebSocket
 ws.close();
 ```
 
-### 4. View/Download Recording
+### 4.View/Download Recording
 
 **Frontend:**
+
 ```javascript
 // List recordings
-const recordings = await fetch(`http://localhost:8000/api/recordings/sessions/${session_id}`, {
-  headers: { 'Authorization': `Bearer ${token}` }
-});
+const recordings = await fetch(
+  `http://localhost:8000/api/recordings/sessions/${session_id}`,
+  {
+    headers: { Authorization: `Bearer ${token}` },
+  }
+);
 
 // Download
-window.open(`http://localhost:8000/api/recordings/${recording_id}/download`, '_blank');
+window.open(
+  `http://localhost:8000/api/recordings/${recording_id}/download`,
+  "_blank"
+);
 ```
 
 ## Storage
 
 ### Local Storage
+
 - Videos stored in `recordings/` directory
 - Filename format: `session_{session_id}_{timestamp}.mp4`
 - Automatic directory creation on startup
@@ -245,6 +277,7 @@ def upload_to_s3(filepath, session_id):
 ```
 
 Update the `VideoRecording` model:
+
 ```python
 recording.cloud_storage_url = s3_url
 recording.cloud_storage_provider = 's3'
@@ -253,22 +286,22 @@ recording.cloud_storage_provider = 's3'
 ## Performance Optimization
 
 ### Browser Side
+
 - **Low FPS streaming**: 5 FPS reduces bandwidth
 - **JPEG compression**: 0.8 quality for snapshots
 - **Canvas-based capture**: Efficient frame extraction
 - **WebSocket**: Persistent connection, low overhead
 
 ### Server Side
+
 - **High FPS recording**: 30 FPS for smooth playback
 - **Batch commits**: Database updates every 5 frames
 - **Thread-safe**: Multiple sessions can record simultaneously
 - **Frame interpolation**: Duplicates frames to reach target FPS
 
 ### Benefits
-1. **Browser doesn't freeze**: Only 5 FPS upload
-2. **High-quality recording**: 30 FPS on server
-3. **Scalable**: Server handles heavy lifting
-4. **Efficient storage**: H.264 codec compression
+
+1.**Browser doesn't freeze**: Only 5 FPS upload 2.**High-quality recording**: 30 FPS on server 3.**Scalable**: Server handles heavy lifting 4.**Efficient storage**: H.264 codec compression
 
 ## Configuration
 
@@ -306,6 +339,7 @@ print(f"Cleaned up {deleted} recordings older than 7 days")
 ## Dependencies
 
 Already installed:
+
 - `opencv-python`: Video encoding/decoding
 - `numpy`: Frame manipulation
 - `fastapi`: API endpoints
@@ -358,54 +392,58 @@ curl "http://localhost:8000/api/recordings/{recording_id}/download" \
 
 ## Security Considerations
 
-1. **Authentication**: All endpoints require JWT token
-2. **Authorization**: Users can only access their own recordings
-3. **Path Validation**: Filenames validated to prevent path traversal
-4. **File Cleanup**: Automatic deletion of old files
-5. **Storage Limits**: Consider implementing quota per user
+1.**Authentication**: All endpoints require JWT token 2.**Authorization**: Users can only access their own recordings 3.**Path Validation**: Filenames validated to prevent path traversal 4.**File Cleanup**: Automatic deletion of old files 5.**Storage Limits**: Consider implementing quota per user
 
 ## Future Enhancements
 
-1. **Cloud Storage Integration**
-   - AWS S3
-   - Azure Blob Storage
-   - Google Cloud Storage
+1.**Cloud Storage Integration**
 
-2. **Advanced Features**
-   - Video streaming (HLS/DASH)
-   - Real-time transcoding
-   - Thumbnail generation
-   - Frame extraction for analysis
+- AWS S3
+- Azure Blob Storage
+- Google Cloud Storage
 
-3. **Optimization**
-   - Hardware acceleration (GPU)
-   - H.265 codec support
-   - Adaptive bitrate
-   - Multi-resolution recording
+2.**Advanced Features**
 
-4. **Analytics**
-   - Storage usage monitoring
-   - Recording quality metrics
-   - Bandwidth usage tracking
+- Video streaming (HLS/DASH)
+- Real-time transcoding
+- Thumbnail generation
+- Frame extraction for analysis
+
+3.**Optimization**
+
+- Hardware acceleration (GPU)
+- H.265 codec support
+- Adaptive bitrate
+- Multi-resolution recording
+
+4.**Analytics**
+
+- Storage usage monitoring
+- Recording quality metrics
+- Bandwidth usage tracking
 
 ## Troubleshooting
 
 ### Recording Fails to Start
+
 - Check `recordings/` directory exists and is writable
 - Verify OpenCV is installed: `pip install opencv-python`
 - Check logs for codec errors
 
 ### Large File Sizes
+
 - Reduce FPS: `fps=15`
 - Reduce resolution: `resolution=1280x720`
 - Use better codec: `codec=avc1` (if available)
 
 ### WebSocket Disconnects
+
 - Check keepalive is working
 - Verify network stability
 - Increase WebSocket timeout
 
 ### Frame Writing Errors
+
 - Check disk space
 - Verify file permissions
 - Monitor memory usage
@@ -413,6 +451,7 @@ curl "http://localhost:8000/api/recordings/{recording_id}/download" \
 ## Summary
 
 The video recording system provides:
+
 - ✅ Server-side video recording (no browser overload)
 - ✅ High-quality storage (Full HD, 30 FPS)
 - ✅ Efficient streaming (5 FPS to browser)

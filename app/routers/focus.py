@@ -43,16 +43,16 @@ async def create_session(
     db: Session = Depends(get_db)
 ):
     """
-    Create a new learning session. 
+    Create a new learning session.
     
     - **session_name**: Name of the learning session
     - **subject**: Subject being studied
     - **initial_score**: Starting score (default: 100.0)
     """
     session = LearningSession(
-        user_id=current_user. id,
+        user_id=current_user.id,
         session_name=session_create.session_name,
-        subject=session_create. subject,
+        subject=session_create.subject,
         initial_score=session_create.initial_score,
         current_score=session_create.initial_score,
         started_at=now_utc(),
@@ -155,7 +155,7 @@ async def end_session(
         raise HTTPException(status_code=404, detail="Session not found")
     
     # Set ended_at with timezone-aware datetime
-    session. ended_at = now_utc()
+    session.ended_at = now_utc()
     
     # Calculate final duration safely
     if session.started_at:
@@ -166,7 +166,7 @@ async def end_session(
     
     # Calculate final metrics
     if session.duration_seconds > 0:
-        session. final_score = session.current_score
+        session.final_score = session.current_score
         session.average_score = (session.initial_score + session.current_score) / 2
         session.min_score = min(session.current_score, session.initial_score)
         session.max_score = max(session.current_score, session.initial_score)
@@ -311,7 +311,7 @@ async def websocket_endpoint(
             try:
                 message = json.loads(data)
                 if message.get("type") == "ping":
-                    await websocket. send_json({"type": "pong", "timestamp": now_utc().isoformat()})
+                    await websocket.send_json({"type": "pong", "timestamp": now_utc().isoformat()})
                     continue
             except json.JSONDecodeError:
                 pass  # Not JSON, treat as frame data
@@ -356,7 +356,7 @@ async def websocket_endpoint(
             
             # ✅ Run AI detection
             try:
-                result, _ = focus_service. process_webcam_frame(frame_data)
+                result, _ = focus_service.process_webcam_frame(frame_data)
             except Exception as e:
                 print(f"❌ AI detection error: {e}")
                 await websocket.send_json({
@@ -395,7 +395,7 @@ async def websocket_endpoint(
             
             # Phone detection
             if phone_detected:
-                session. phone_detected_count += 1
+                session.phone_detected_count += 1
                 session.total_violations += 1
                 violation_occurred = True
                 violation_type = "phone"
@@ -416,7 +416,7 @@ async def websocket_endpoint(
                 if not person_detected:
                     result["message"] = "⚠️ Không phát hiện người!  Vui lòng quay lại ghế."
                 else:
-                    result["message"] = "⚠️ Có vẻ bạn đang rời khỏi ghế.  Hãy ngồi thẳng!"
+                    result["message"] = "⚠️ Có vẻ bạn đang rời khỏi ghế. Hãy ngồi thẳng!"
                 result["alert_type"] = "urgent"
             
             # ✅ Track consecutive violations for escalating alerts
@@ -437,7 +437,7 @@ async def websocket_endpoint(
                 if alert_type == "gentle":
                     session.gentle_alerts += 1
                 elif alert_type == "urgent":
-                    session. urgent_alerts += 1
+                    session.urgent_alerts += 1
             
             # ✅ Calculate dynamic score
             current_score = session_data[session_id]["last_score"]
@@ -458,7 +458,7 @@ async def websocket_endpoint(
             total_frames = session_data[session_id]["total_frames"]
             focused_frames = session_data[session_id]["focused_frames"]
             focus_percentage = (focused_frames / total_frames * 100) if total_frames > 0 else 100.0
-            session. focus_percentage = focus_percentage
+            session.focus_percentage = focus_percentage
             
             # ✅ Calculate duration safely (handle timezone)
             current_time = now_utc()
@@ -519,11 +519,11 @@ async def websocket_endpoint(
                     "session_id": str(session.session_id),
                     "duration_seconds": duration_seconds,
                     "current_score": round(current_score, 1),
-                    "total_violations": session. total_violations,
-                    "phone_detected_count": session. phone_detected_count,
+                    "total_violations": session.total_violations,
+                    "phone_detected_count": session.phone_detected_count,
                     "left_seat_count":  session.left_seat_count,
                     "total_alerts":  session.total_alerts,
-                    "gentle_alerts": session. gentle_alerts,
+                    "gentle_alerts": session.gentle_alerts,
                     "urgent_alerts": session.urgent_alerts,
                     "focus_percentage": round(focus_percentage, 1),
                     "total_frames": total_frames,
@@ -558,7 +558,7 @@ async def websocket_endpoint(
             print(f"📊 Session {session_id} stats:")
             print(f"   Total frames: {final_stats['total_frames']}")
             print(f"   Focused frames:  {final_stats['focused_frames']}")
-            print(f"   Final score: {final_stats['last_score']:. 1f}")
+            print(f"   Final score: {final_stats['last_score']:.1f}")
             del session_data[session_id]
         
         # ✅ Cleanup and log performance
@@ -596,7 +596,7 @@ async def websocket_endpoint(
         
         # Final commit attempt
         try:
-            db. commit()
+            db.commit()
         except: 
             db.rollback()
         

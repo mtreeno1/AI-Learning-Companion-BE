@@ -4,7 +4,7 @@ Smart Alert System - Cảnh báo thông minh với giọng nói AI
 
 import time
 from typing import Optional
-from config. constants import *
+from config.constants import *
 import os
 
 
@@ -38,7 +38,7 @@ class AlertManager:
             
             for level, filepath in sound_files.items():
                 if os.path.exists(filepath):
-                    self.sounds[level] = pygame.mixer. Sound(filepath)
+                    self.sounds[level] = pygame.mixer.Sound(filepath)
                     
                     # Set volume based on level
                     if level == 'severely_distracted':
@@ -47,14 +47,14 @@ class AlertManager:
                         self.sounds[level].set_volume(0.6)  # 60% volume
             
             if self.sounds:
-                self. sound_enabled = True
+                self.sound_enabled = True
                 print(f"✅ Loaded {len(self.sounds)} voice alerts")
             else:
                 print("⚠️ No voice alert files found.")
                 print("   Run:  python generate_voice_alerts.py")
                 
         except ImportError:
-            print("⚠️ pygame not installed. Install with: pip install pygame")
+            print("⚠️ pygame not installed.Install with: pip install pygame")
         except Exception as e:
             print(f"⚠️ Failed to initialize sound: {str(e)}")
         
@@ -67,9 +67,9 @@ class AlertManager:
         Quyết định có nên cảnh báo không
         
         Điều kiện:
-        1. Score < ALERT_SCORE_THRESHOLD
-        2. Mất tập trung liên tục > ALERT_TRIGGER_DURATION
-        3. Đã qua ALERT_COOLDOWN kể từ lần cảnh báo trước
+        1.Score < ALERT_SCORE_THRESHOLD
+        2.Mất tập trung liên tục > ALERT_TRIGGER_DURATION
+        3.Đã qua ALERT_COOLDOWN kể từ lần cảnh báo trước
         
         Returns:
             True nếu cần cảnh báo
@@ -126,7 +126,7 @@ class AlertManager:
         else:
             print(f"🔔 Alert for level: {level} (voice not available)")
             if not self.sound_enabled:
-                print("   Tip: Run 'python generate_voice_alerts. py' to generate voices")
+                print("   Tip: Run 'python generate_voice_alerts.py' to generate voices")
     
     def play_motivational(self):
         """

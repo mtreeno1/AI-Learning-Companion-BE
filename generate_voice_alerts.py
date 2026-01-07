@@ -57,7 +57,7 @@ async def generate_all_alerts():
             'volume': '+0%'
         },
         'urgent': {
-            'text':  'Chú ý! Bạn đã mất tập trung quá lâu.  Hãy quay lại bài học nhé',
+            'text':  'Chú ý! Bạn đã mất tập trung quá lâu. Hãy quay lại bài học nhé',
             'file': 'assets/urgent_voice_alert.mp3',
             'voice':  VIETNAMESE_VOICES['female_north'],
             'rate':  '+5%',  # Nói nhanh hơn 5%
@@ -65,7 +65,7 @@ async def generate_all_alerts():
         },
         'motivational': {
             'text':  'Bạn làm rất tốt! Hãy tiếp tục duy trì sự tập trung nhé',
-            'file': 'assets/motivational_voice. mp3',
+            'file': 'assets/motivational_voice.mp3',
             'voice':  VIETNAMESE_VOICES['female_north'],
             'rate':  '-5%',  # Nói chậm hơn, dễ nghe
             'volume': '+0%'
@@ -99,7 +99,7 @@ async def list_available_voices():
     voices = await edge_tts.list_voices()
     
     for voice in voices:
-        if voice['Locale']. startswith('vi-'):
+        if voice['Locale'].startswith('vi-'):
             print(f"Voice ID: {voice['ShortName']}")
             print(f"  Name: {voice['FriendlyName']}")
             print(f"  Gender: {voice['Gender']}")
@@ -111,7 +111,7 @@ async def test_voice_preview(text: str = "Xin chào, đây là giọng đọc ti
     """Test different voices"""
     print("\n🎧 TESTING VOICES\n")
     
-    for name, voice_id in VIETNAMESE_VOICES. items():
+    for name, voice_id in VIETNAMESE_VOICES.items():
         output = f"assets/test_{name}.mp3"
         print(f"Testing {name} ({voice_id})...")
         await generate_voice(text, output, voice_id)
@@ -125,7 +125,7 @@ if __name__ == "__main__":
         
         if command == "list":
             # List available voices
-            asyncio. run(list_available_voices())
+            asyncio.run(list_available_voices())
         
         elif command == "test": 
             # Test voices with sample text
@@ -135,10 +135,10 @@ if __name__ == "__main__":
             # Generate custom message
             if len(sys.argv) < 3:
                 print("Usage: python generate_voice_alerts.py custom 'Your message here'")
-                sys. exit(1)
+                sys.exit(1)
             
             custom_text = sys.argv[2]
-            output_file = "assets/custom_voice. mp3"
+            output_file = "assets/custom_voice.mp3"
             
             asyncio.run(generate_voice(
                 custom_text,
@@ -147,7 +147,7 @@ if __name__ == "__main__":
             ))
         
         else:
-            print("Unknown command.  Available: list, test, custom")
+            print("Unknown command. Available: list, test, custom")
     
     else:
         # Default:  Generate all alerts

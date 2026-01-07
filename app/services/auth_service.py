@@ -41,10 +41,10 @@ class AuthService:
         
         db.add(new_user)
         db.commit()
-        db.refresh(new_user)  # ✅ After this, new_user. id will have UUID value
+        db.refresh(new_user)  # ✅ After this, new_user.id will have UUID value
         
         # ✅ Debug
-        print(f"✅ Created user: {new_user. email}")
+        print(f"✅ Created user: {new_user.email}")
         print(f"✅ User ID: {new_user.id} (type: {type(new_user.id)})")
         
         # ✅ Create JWT token
@@ -71,7 +71,7 @@ class AuthService:
         return {
             "id": str(new_user.id),  # ✅ Convert UUID to string for JSON
             "email": new_user.email,
-            "name": new_user. name,
+            "name": new_user.name,
             "token": access_token
         }
     
@@ -88,9 +88,9 @@ class AuthService:
             )
         
         # Verify password
-        if not verify_password(password, user. password):
+        if not verify_password(password, user.password):
             raise HTTPException(
-                status_code=status. HTTP_401_UNAUTHORIZED,
+                status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid email or password"
             )
         
@@ -100,7 +100,7 @@ class AuthService:
         
         # ✅ Create payload
         to_encode = {
-            "sub": str(user.id),  # ✅ IMPORTANT: user. id as string
+            "sub": str(user.id),  # ✅ IMPORTANT: user.id as string
             "email": user.email,
             "name": user.name,
             "exp": expire,
@@ -119,7 +119,7 @@ class AuthService:
         print(f"✅ Token preview: {access_token[:50]}...")
         
         return {
-            "id": user. id,
+            "id": user.id,
             "email": user.email,
             "name":  user.name,
             "token": access_token  # ✅ Return JWT token

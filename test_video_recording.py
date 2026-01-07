@@ -166,7 +166,7 @@ def main():
     
     # Test 1: Imports
     if not test_imports():
-        print("\n❌ Import tests failed. Install missing dependencies.")
+        print("\n❌ Import tests failed.Install missing dependencies.")
         return False
     
     # Test 2: Model structure

@@ -26,10 +26,10 @@ def main():
     # Start webcam
     cap = cv2.VideoCapture(0)
     
-    print("Starting focus tracking...  Press 'q' to quit, 'r' to reset score")
+    print("Starting focus tracking... Press 'q' to quit, 'r' to reset score")
     
     while True: 
-        ret, frame = cap. read()
+        ret, frame = cap.read()
         if not ret: 
             break
         
@@ -67,7 +67,7 @@ def main():
         
         # Draw pose
         if pose_results and pose_results[0].keypoints is not None:
-            kpts = pose_results[0]. keypoints.xy[0].cpu().numpy()
+            kpts = pose_results[0].keypoints.xy[0].cpu().numpy()
             if len(kpts) > 0:
                 draw_keypoints(frame, kpts)
                 
@@ -81,12 +81,12 @@ def main():
                                 (20, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
         
         # Draw focus score (BIG)
-        score_color = tuple(int(color. lstrip('#')[i:i+2], 16) for i in (4, 2, 0))  # BGR
+        score_color = tuple(int(color.lstrip('#')[i:i+2], 16) for i in (4, 2, 0))  # BGR
         cv2.putText(frame, f"FOCUS: {focus_score:.1f}", (20, 50),
                     cv2.FONT_HERSHEY_SIMPLEX, 1.5, score_color, 3)
         
         # Draw level
-        cv2.putText(frame, level. upper().replace('_', ' '), (20, 90),
+        cv2.putText(frame, level.upper().replace('_', ' '), (20, 90),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, score_color, 2)
         
         # Draw active events
@@ -118,7 +118,7 @@ def main():
     print("SESSION SUMMARY")
     print("="*50)
     for key, value in stats.items():
-        print(f"{key}: {value:. 2f}" if isinstance(value, float) else f"{key}: {value}")
+        print(f"{key}: {value:.2f}" if isinstance(value, float) else f"{key}: {value}")
     print("="*50)
     
     cap.release()

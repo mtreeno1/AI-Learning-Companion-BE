@@ -47,7 +47,7 @@ COPY --from=builder /root/.local /root/.local
 ENV PATH=/root/.local/bin:$PATH
 
 # Copy application code
-COPY . .
+COPY ..
 
 # Create necessary directories
 RUN mkdir -p models recordings
@@ -64,9 +64,9 @@ RUN if [ ! -f models/yolov8n.pt ]; then \
    fi
 
 # Remove any cached files
-RUN find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true && \
-   find . -type f -name "*.pyc" -delete && \
-   find . -type f -name "*.pyo" -delete && \
+RUN find .-type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true && \
+   find .-type f -name "*.pyc" -delete && \
+   find .-type f -name "*.pyo" -delete && \
    rm -rf /root/.cache
 
 # Set environment variables

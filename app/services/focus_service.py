@@ -36,7 +36,7 @@ class FocusDetectionService:
         self.alert_cooldown = 3  # seconds between alerts
         
         # Detection thresholds
-        self. PERSON_CONFIDENCE_THRESHOLD = 0.3
+        self.PERSON_CONFIDENCE_THRESHOLD = 0.3
         self.PHONE_CONFIDENCE_THRESHOLD = 0.4
         self.NO_PERSON_TIMEOUT = 5  # seconds before "no person" alert
         
@@ -158,7 +158,7 @@ class FocusDetectionService:
         # Priority 1: No person detected
         if not person_detected:
             if self.no_person_start_time is None:
-                self. no_person_start_time = current_time
+                self.no_person_start_time = current_time
             
             elapsed = (current_time - self.no_person_start_time).total_seconds()
             
@@ -280,7 +280,7 @@ class FocusDetectionService:
         
         return result, annotated_frame
     
-    def _annotate_frame(self, frame: np. ndarray, result: Dict) -> np.ndarray:
+    def _annotate_frame(self, frame: np.ndarray, result: Dict) -> np.ndarray:
         """
         Draw bounding boxes and status on frame
         """

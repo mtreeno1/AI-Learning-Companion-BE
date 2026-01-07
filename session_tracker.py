@@ -20,7 +20,7 @@ from typing import Dict, List, Optional
 from pathlib import Path
 import csv
 
-from core. focus_scorer import FocusScorer
+from core.focus_scorer import FocusScorer
 
 
 class SessionTracker:
@@ -38,7 +38,7 @@ class SessionTracker:
         
         # Metadata file
         self.metadata_file = self.storage_dir / "sessions_metadata.json"
-        self. metadata = self._load_metadata()
+        self.metadata = self._load_metadata()
     
     def _load_metadata(self) -> Dict:
         """Load metadata từ file"""
@@ -58,7 +58,7 @@ class SessionTracker:
         
         Format: {user_id}_{timestamp}
         """
-        timestamp = datetime. now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         return f"{user_id}_{timestamp}"
     
     def save_session(
@@ -86,13 +86,13 @@ class SessionTracker:
             'user_id': user_id,
             'session_name': session_name or f"Session {datetime.now().strftime('%Y-%m-%d %H:%M')}",
             'started_at': datetime.fromtimestamp(scorer.history[0]['timestamp']).isoformat() if scorer.history else None,
-            'ended_at': datetime.fromtimestamp(scorer. history[-1]['timestamp']).isoformat() if scorer.history else None,
+            'ended_at': datetime.fromtimestamp(scorer.history[-1]['timestamp']).isoformat() if scorer.history else None,
             'statistics': stats,
             'focus_level_final': scorer.get_focus_level()[0],
         }
         
         # Save detailed history
-        history_file = self. storage_dir / f"{session_id}_history.json"
+        history_file = self.storage_dir / f"{session_id}_history.json"
         with open(history_file, 'w', encoding='utf-8') as f:
             json.dump({
                 'session_info': session_data,
@@ -112,7 +112,7 @@ class SessionTracker:
         Returns:
             Session data hoặc None nếu không tìm thấy
         """
-        return self.metadata['sessions']. get(session_id)
+        return self.metadata['sessions'].get(session_id)
     
     def get_session_history(self, session_id: str) -> Optional[List[Dict]]:
         """
@@ -139,13 +139,13 @@ class SessionTracker:
             List of session data, sorted by date (newest first)
         """
         user_sessions = [
-            session for session in self.metadata['sessions']. values()
+            session for session in self.metadata['sessions'].values()
             if session['user_id'] == user_id
         ]
         
         # Sort by ended_at (newest first)
         user_sessions.sort(
-            key=lambda x: x. get('ended_at', ''),
+            key=lambda x: x.get('ended_at', ''),
             reverse=True
         )
         
@@ -159,7 +159,7 @@ class SessionTracker:
         
         # Sort by ended_at
         all_sessions.sort(
-            key=lambda x: x. get('ended_at', ''),
+            key=lambda x: x.get('ended_at', ''),
             reverse=True
         )
         
@@ -176,7 +176,7 @@ class SessionTracker:
             return False
         
         # Delete history file
-        history_file = self. storage_dir / f"{session_id}_history.json"
+        history_file = self.storage_dir / f"{session_id}_history.json"
         if history_file.exists():
             history_file.unlink()
         
@@ -243,7 +243,7 @@ class SessionTracker:
                 'total_sessions': int,
                 'total_duration': float (seconds),
                 'avg_focus_score': float,
-                'best_session': {... },
+                'best_session': {...},
                 'worst_session':  {...},
                 'total_violations': int
             }
@@ -258,7 +258,7 @@ class SessionTracker:
         
         # Calculate statistics
         total_duration = sum(
-            s['statistics']. get('duration_seconds', 0)
+            s['statistics'].get('duration_seconds', 0)
             for s in sessions
         )
         
@@ -285,12 +285,12 @@ class SessionTracker:
                 'session_id': best_session['session_id'],
                 'session_name': best_session['session_name'],
                 'avg_score': round(best_session['statistics'].get('avg_score', 0), 2),
-                'date': best_session. get('ended_at', '')
+                'date': best_session.get('ended_at', '')
             },
             'worst_session': {
                 'session_id': worst_session['session_id'],
                 'session_name': worst_session['session_name'],
-                'avg_score':  round(worst_session['statistics']. get('avg_score', 0), 2),
+                'avg_score':  round(worst_session['statistics'].get('avg_score', 0), 2),
                 'date': worst_session.get('ended_at', '')
             }
         }
@@ -342,7 +342,7 @@ if __name__ == "__main__":
         print("  python session_tracker.py list <user_id>")
         print("  python session_tracker.py stats <user_id>")
         print("  python session_tracker.py export <session_id>")
-        print("  python session_tracker. py cleanup <days>")
+        print("  python session_tracker.py cleanup <days>")
         sys.exit(1)
     
     command = sys.argv[1]
@@ -361,8 +361,8 @@ if __name__ == "__main__":
         for session in sessions:
             print(f"\nSession ID: {session['session_id']}")
             print(f"Name: {session['session_name']}")
-            print(f"Date: {session. get('ended_at', 'N/A')}")
-            print(f"Avg Score: {session['statistics']. get('avg_score', 0):.2f}")
+            print(f"Date: {session.get('ended_at', 'N/A')}")
+            print(f"Avg Score: {session['statistics'].get('avg_score', 0):.2f}")
             print(f"Duration: {session['statistics'].get('duration_seconds', 0):.0f}s")
     
     elif command == "stats": 
@@ -378,7 +378,7 @@ if __name__ == "__main__":
         print(json.dumps(stats, indent=2, ensure_ascii=False))
     
     elif command == "export":
-        if len(sys. argv) < 3:
+        if len(sys.argv) < 3:
             print("Error: session_id required")
             sys.exit(1)
         
@@ -391,7 +391,7 @@ if __name__ == "__main__":
             print("Error: days required")
             sys.exit(1)
         
-        days = int(sys. argv[2])
+        days = int(sys.argv[2])
         deleted = tracker.cleanup_old_sessions(days)
         print(f"✅ Cleaned up {deleted} sessions older than {days} days")
     

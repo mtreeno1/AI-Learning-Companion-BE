@@ -14,7 +14,7 @@ import time
 
 from core.focus_scorer import FocusScorer
 from core.event_detector import EventDetector
-from core. alert_manager import AlertManager
+from core.alert_manager import AlertManager
 
 
 def draw_ui(frame, focus_score, level, color, events, distraction_duration):
@@ -32,17 +32,17 @@ def draw_ui(frame, focus_score, level, color, events, distraction_duration):
     except:
         bgr_color = (0, 255, 0)
     
-    # 1. Draw focus score (BIG, center-top)
+    # 1.Draw focus score (BIG, center-top)
     score_text = f"{focus_score:.1f}"
     cv2.putText(frame, score_text, (w//2 - 80, 70),
                 cv2.FONT_HERSHEY_SIMPLEX, 2.5, bgr_color, 4)
     
-    # 2. Draw level below score
-    level_text = level. upper().replace('_', ' ')
+    # 2.Draw level below score
+    level_text = level.upper().replace('_', ' ')
     cv2.putText(frame, level_text, (w//2 - 100, 110),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.8, bgr_color, 2)
     
-    # 3. Draw progress bar
+    # 3.Draw progress bar
     bar_width = 300
     bar_height = 20
     bar_x = (w - bar_width) // 2
@@ -61,7 +61,7 @@ def draw_ui(frame, focus_score, level, color, events, distraction_duration):
     cv2.rectangle(frame, (bar_x, bar_y), (bar_x + bar_width, bar_y + bar_height),
                   (255, 255, 255), 2)
     
-    # 4. Draw active events (left side) - CHỈ PHONE & LEFT SEAT
+    # 4.Draw active events (left side) - CHỈ PHONE & LEFT SEAT
     y_offset = 200
     cv2.putText(frame, "EVENTS:", (20, y_offset),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
@@ -90,7 +90,7 @@ def draw_ui(frame, focus_score, level, color, events, distraction_duration):
         cv2.putText(frame, "All Good", (55, y_offset),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
     
-    # 5. Draw distraction timer (bottom center)
+    # 5.Draw distraction timer (bottom center)
     if distraction_duration is not None and distraction_duration > 0:
         timer_text = f"Distracted:  {distraction_duration:.1f}s"
         timer_size = cv2.getTextSize(timer_text, cv2.FONT_HERSHEY_SIMPLEX, 0.8, 2)[0]
@@ -110,7 +110,7 @@ def draw_ui(frame, focus_score, level, color, events, distraction_duration):
         cv2.putText(frame, timer_text, (timer_x, h - 50),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 165, 255), 2)
     
-    # 6. Draw controls (bottom-left)
+    # 6.Draw controls (bottom-left)
     controls = "Q: Quit | R:Reset | S:Stats"
     cv2.putText(frame, controls, (10, h - 10),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 1)
@@ -135,7 +135,7 @@ def main():
     # Open webcam
     cap = cv2.VideoCapture(0)
     
-    if not cap. isOpened():
+    if not cap.isOpened():
         print("❌ Error: Could not open webcam")
         return
     
@@ -154,7 +154,7 @@ def main():
     print("  R - Reset score to 100")
     print("  S - Show current statistics")
     print("=" * 60)
-    print("\nStarting focus tracking.. .\n")
+    print("\nStarting focus tracking...\n")
     
     # FPS calculation
     fps_start_time = time.time()
@@ -177,7 +177,7 @@ def main():
         pose_results = pose(frame, verbose=False)
         
         # Detect events (chỉ phone & left seat)
-        events = detector. detect_events(
+        events = detector.detect_events(
             frame, det_results, pose_results, det, pose
         )
         
@@ -200,7 +200,7 @@ def main():
         if time.time() - fps_start_time >= 1.0:
             fps_display = fps_counter
             fps_counter = 0
-            fps_start_time = time. time()
+            fps_start_time = time.time()
         
         # Draw FPS (top right)
         cv2.putText(frame, f"FPS: {fps_display}", (frame.shape[1] - 100, 30),
@@ -227,7 +227,7 @@ def main():
             print("📊 CURRENT STATISTICS")
             print("=" * 60)
             print(f"Current Score:         {focus_score:.2f}")
-            print(f"Current Level:         {level. replace('_', ' ').title()}")
+            print(f"Current Level:         {level.replace('_', ' ').title()}")
             print(f"Average Score:         {stats.get('avg_score', 0):.2f}")
             print(f"Min Score:             {stats.get('min_score', 0):.2f}")
             print(f"Max Score:             {stats.get('max_score', 0):.2f}")
@@ -259,7 +259,7 @@ def main():
     # Cleanup
     cap.release()
     cv2.destroyAllWindows()
-    print("\n✅ Camera released.  Goodbye!  👋\n")
+    print("\n✅ Camera released. Goodbye!  👋\n")
 
 
 if __name__ == "__main__":

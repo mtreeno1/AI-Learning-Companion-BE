@@ -62,7 +62,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import init_db
 from app.routers import auth_router
-from app.routers. focus import router as focus_router  # ✅ Make sure this line exists
+from app.routers.focus import router as focus_router  # ✅ Make sure this line exists
 from app.routers.recordings import router as recordings_router
 
 # Initialize database
@@ -113,7 +113,7 @@ async def startup_event():
         from app.models.user import User
         from app.models.learning_session import LearningSession
         from app.models.video_recording import VideoRecording
-        from app. database import Base, engine
+        from app.database import Base, engine
         
         Base.metadata.create_all(bind=engine)
         print("✅ Database tables ready")

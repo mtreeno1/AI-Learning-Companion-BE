@@ -92,7 +92,7 @@ class SessionStopResponse(BaseModel):
 
 # ==================== Startup/Shutdown ====================
 
-@app. on_event("startup")
+@app.on_event("startup")
 async def startup_event():
     """Load YOLO models on startup"""
     global det_model, pose_model
@@ -131,7 +131,7 @@ def decode_base64_frame(base64_str: str) -> np.ndarray:
 
 def encode_frame_to_base64(frame: np.ndarray) -> str:
     """Encode numpy array to base64 string"""
-    _, buffer = cv2.imencode('. jpg', frame)
+    _, buffer = cv2.imencode('.jpg', frame)
     return base64.b64encode(buffer).decode('utf-8')
 
 
@@ -150,7 +150,7 @@ def _stop_session(session_id: str) -> Dict:
     session_tracker.save_session(
         session_id=session_id,
         user_id=session_data['user_id'],
-        session_name=session_data. get('session_name'),
+        session_name=session_data.get('session_name'),
         scorer=scorer
     )
     
@@ -237,7 +237,7 @@ async def process_frame(request: FrameProcessRequest):
     
     # Check for alerts
     distraction_duration = scorer.get_distraction_duration()
-    should_alert = alert_manager. should_alert(focus_score, distraction_duration)
+    should_alert = alert_manager.should_alert(focus_score, distraction_duration)
     alert_message = None
     
     if should_alert:
@@ -260,7 +260,7 @@ async def stop_session(request: SessionStopRequest):
     """
     Kết thúc session và lưu statistics
     """
-    stats = _stop_session(request. session_id)
+    stats = _stop_session(request.session_id)
     
     if stats is None:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -285,7 +285,7 @@ async def get_session(session_id: str):
         return {
             "session_id": session_id,
             "user_id": session_data['user_id'],
-            "session_name": session_data. get('session_name'),
+            "session_name": session_data.get('session_name'),
             "status": "active",
             "started_at": session_data['started_at'],
             "current_score": scorer.score,
@@ -329,7 +329,7 @@ async def list_sessions(user_id: Optional[str] = None, limit: int = 50):
     }
     
     # Active sessions
-    for session_id, session_data in active_sessions. items():
+    for session_id, session_data in active_sessions.items():
         if user_id is None or session_data['user_id'] == user_id:
             result['active'].append({
                 'session_id': session_id,
@@ -357,7 +357,7 @@ async def websocket_focus_tracking(websocket: WebSocket, session_id: str):
     Server sends: {
         "focus_score": 85.5,
         "focus_level": "focused",
-        "events": {... },
+        "events": {...},
         "should_alert": false
     }
     """
@@ -430,7 +430,7 @@ async def websocket_focus_tracking(websocket: WebSocket, session_id: str):
 
 # ==================== Development Endpoints ====================
 
-@app. get("/api/debug/sessions")
+@app.get("/api/debug/sessions")
 async def debug_sessions():
     """Debug endpoint to see all active session details"""
     return {
@@ -440,7 +440,7 @@ async def debug_sessions():
             'current_score': data['scorer'].score,
             'history_length': len(data['scorer'].history)
         }
-        for session_id, data in active_sessions. items()
+        for session_id, data in active_sessions.items()
     }
 
 
