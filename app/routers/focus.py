@@ -7,6 +7,7 @@ import base64
 import numpy as np
 import cv2
 from uuid import UUID
+import time  # ✅ Add for performance tracking
 
 from app.database import get_db
 from app.models.learning_session import LearningSession
@@ -28,6 +29,9 @@ router = APIRouter(prefix="/api/focus", tags=["Focus Detection"])
 
 # Track session data in memory
 session_data: Dict[str, dict] = {}  # {session_id: {"total_frames": 0, "focused_frames": 0, "last_score": 100.0}}
+
+# ✅ Track processing state (prevent frame queue buildup)
+session_processing: Dict[str, dict] = {}  # {session_id: {"is_processing": bool, "frames_dropped": int}}
 
 
 # ==================== REST Endpoints ====================
@@ -282,7 +286,17 @@ async def websocket_endpoint(
             "recording_enabled": enable_recording,
         }
     
+    # ✅ Initialize processing state
+    session_processing[session_id] = {
+        "is_processing": False,
+        "frames_dropped": 0,
+        "total_processing_time": 0.0,
+        "max_processing_time": 0.0,
+        "frames_processed": 0
+    }
+    
     print(f"🔌 WebSocket connected for session {session_id}")
+    print(f"⚡ Performance mode: Adaptive frame rate with queue prevention")
     
     # Batch database commits counter
     frame_count = 0
@@ -302,6 +316,16 @@ async def websocket_endpoint(
             except json.JSONDecodeError:
                 pass  # Not JSON, treat as frame data
             
+            # ✅ Check if currently processing (drop frame if busy)
+            if session_processing[session_id]["is_processing"]:
+                session_processing[session_id]["frames_dropped"] += 1
+                # Silently drop frame to prevent queue buildup
+                continue
+            
+            # ✅ Mark as processing to prevent queue buildup
+            session_processing[session_id]["is_processing"] = True
+            processing_start_time = time.time()
+            
             # ✅ Decode frame
             try:
                 if ',' in data:
@@ -314,6 +338,7 @@ async def websocket_endpoint(
                     "error": f"Failed to decode frame: {str(e)}",
                     "timestamp": now_utc().isoformat()
                 })
+                session_processing[session_id]["is_processing"] = False  # ✅ Reset on error
                 continue
             
             # ✅ Write frame to video recording if enabled
@@ -338,7 +363,17 @@ async def websocket_endpoint(
                     "error": f"Detection failed: {str(e)}",
                     "timestamp": now_utc().isoformat()
                 })
+                session_processing[session_id]["is_processing"] = False  # ✅ Reset on error
                 continue
+            
+            # ✅ Track processing time
+            processing_time = time.time() - processing_start_time
+            session_processing[session_id]["frames_processed"] += 1
+            session_processing[session_id]["total_processing_time"] += processing_time
+            session_processing[session_id]["max_processing_time"] = max(
+                session_processing[session_id]["max_processing_time"],
+                processing_time
+            )
             
             # ✅ Update frame counters
             session_data[session_id]["total_frames"] += 1
@@ -468,6 +503,17 @@ async def websocket_endpoint(
                     "active": recording_active,
                 },
                 
+                # ✅ Performance metrics
+                "performance": {
+                    "processing_time_ms": round(processing_time * 1000, 1),
+                    "avg_processing_time_ms": round(
+                        (session_processing[session_id]["total_processing_time"] / 
+                         session_processing[session_id]["frames_processed"]) * 1000, 1
+                    ) if session_processing[session_id]["frames_processed"] > 0 else 0,
+                    "frames_dropped": session_processing[session_id]["frames_dropped"],
+                    "frames_processed": session_processing[session_id]["frames_processed"]
+                },
+                
                 # Stats
                 "stats":  {
                     "session_id": str(session.session_id),
@@ -485,8 +531,15 @@ async def websocket_endpoint(
                 }
             }
             
+            # ✅ Log slow processing
+            if processing_time > 1.0:
+                print(f"⚠️ Slow frame processing: {processing_time:.2f}s")
+            
             # ✅ Send response immediately
             await websocket.send_json(response)
+            
+            # ✅ Mark processing complete (allow next frame)
+            session_processing[session_id]["is_processing"] = False
     
     except WebSocketDisconnect:
         print(f"🔌 WebSocket disconnected for session {session_id}")
@@ -507,6 +560,19 @@ async def websocket_endpoint(
             print(f"   Focused frames:  {final_stats['focused_frames']}")
             print(f"   Final score: {final_stats['last_score']:. 1f}")
             del session_data[session_id]
+        
+        # ✅ Cleanup and log performance
+        if session_id in session_processing:
+            perf = session_processing[session_id]
+            if perf["frames_processed"] > 0:
+                avg_time = perf["total_processing_time"] / perf["frames_processed"]
+                print(f"⚡ Performance metrics for session {session_id}:")
+                print(f"   Frames processed: {perf['frames_processed']}")
+                print(f"   Frames dropped: {perf['frames_dropped']}")
+                print(f"   Drop rate: {(perf['frames_dropped']/(perf['frames_processed']+perf['frames_dropped'])*100):.1f}%")
+                print(f"   Avg processing time: {avg_time:.3f}s ({1/avg_time:.2f} FPS)")
+                print(f"   Max processing time: {perf['max_processing_time']:.3f}s")
+            del session_processing[session_id]
     
     except Exception as e:
         print(f"❌ WebSocket error: {e}")
@@ -537,3 +603,7 @@ async def websocket_endpoint(
         # Cleanup session data
         if session_id in session_data: 
             del session_data[session_id]
+        
+        # ✅ Cleanup processing state
+        if session_id in session_processing:
+            del session_processing[session_id]

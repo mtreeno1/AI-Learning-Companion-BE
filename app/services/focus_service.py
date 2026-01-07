@@ -16,14 +16,20 @@ class FocusDetectionService:
     """
     def __init__(self, model_path: str = "yolov8n.pt"):
         """
-        Initialize YOLO model
+        Initialize YOLO model with aggressive optimization for real-time performance
         
         Args:
             model_path: Path to YOLO model weights
         """
         print(f"🤖 Loading YOLO model:  {model_path}")
         self.model = YOLO(model_path)
-        print("✅ YOLO model loaded successfully")
+        
+        # ✅ Warm up model with dummy inference for faster first run
+        print("🔥 Warming up model...")
+        dummy_frame = np.zeros((320, 320, 3), dtype=np.uint8)
+        _ = self.model(dummy_frame, imgsz=320, verbose=False)
+        
+        print("✅ YOLO model loaded and warmed up successfully")
         
         # Alert management
         self.last_alert_time = None
@@ -36,12 +42,18 @@ class FocusDetectionService:
         
         # State tracking
         self.no_person_start_time = None
-        self. consecutive_phone_detections = 0
+        self.consecutive_phone_detections = 0
         self.phone_detection_threshold = 3  # frames before alert
+        
+        # ✅ YOLO class IDs for filtering (COCO dataset)
+        self.PERSON_CLASS_ID = 0  # person
+        self.PHONE_CLASS_ID = 67  # cell phone
+        self.TARGET_CLASSES = [self.PERSON_CLASS_ID, self.PHONE_CLASS_ID]
         
     def detect_frame(self, frame: np.ndarray) -> Dict: 
         """
         Detect objects in a single frame and determine focus status
+        Optimized for real-time performance
         
         Args:
             frame: OpenCV image (BGR format)
@@ -67,8 +79,27 @@ class FocusDetectionService:
                 }
             }
         """
-        # Run YOLO detection
-        results = self.model(frame, verbose=False)
+        # ✅ Aggressive resize for maximum speed (320x320 is fastest that maintains accuracy)
+        target_size = 320  # Reduced from 384 for better speed
+        h, w = frame.shape[:2]
+        if max(h, w) > target_size:
+            scale = target_size / max(h, w)
+            new_w, new_h = int(w * scale), int(h * scale)
+            frame = cv2.resize(frame, (new_w, new_h), interpolation=cv2.INTER_AREA)
+        
+        # ✅ Run YOLO detection with MAXIMUM speed optimizations
+        results = self.model(
+            frame,
+            imgsz=320,          # Smaller = faster (was 384)
+            conf=0.20,          # Lower threshold for speed (was 0.25)
+            iou=0.5,            # Higher IOU = less boxes to process
+            max_det=10,         # Limit detections for speed (default 300)
+            classes=self.TARGET_CLASSES,  # Only detect person & phone
+            agnostic_nms=True,  # Faster NMS
+            verbose=False,
+            half=False,         # Set to True if using GPU
+            device='cpu'        # Change to 'cuda' if GPU available
+        )
         
         # Parse detections
         person_detected = False
