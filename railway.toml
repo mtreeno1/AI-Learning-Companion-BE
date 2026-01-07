@@ -6,7 +6,7 @@ builder = "dockerfile"
 dockerfilePath = "./Dockerfile.railway"
 
 [deploy]
-startCommand = "cd ai-engine && python run.py"
+startCommand = "python run.py"
 healthcheckPath = "/"
 healthcheckTimeout = 100
 restartPolicyType = "on_failure"
