@@ -59,6 +59,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import os
 from app.config import settings
 from app.database import init_db
 from app.routers import auth_router
@@ -132,7 +133,6 @@ async def startup_event():
         print(f"⚠️  Database initialization failed: {e}")
         print("⚠️  Application will start but database features may not work")
     
-    import os
     port = os.environ.get("PORT", settings.API_PORT)
     print(f"📍 Server: http://{settings.API_HOST}:{port}")
     print(f"📚 Docs:    http://{settings.API_HOST}:{port}/docs")

@@ -15,14 +15,10 @@ def get_engine():
     """Get or create database engine"""
     global engine
     if engine is None:
-        try:
-            engine = create_engine(
-                settings.DATABASE_URL,
-                poolclass=NullPool
-            )
-        except Exception as e:
-            print(f"⚠️  Failed to create database engine: {e}")
-            raise
+        engine = create_engine(
+            settings.DATABASE_URL,
+            poolclass=NullPool
+        )
     return engine
 
 def get_session_local():
@@ -51,7 +47,11 @@ def init_db():
    Non-blocking: logs errors but doesn't crash the application
    """
    try:
-       from app.models import user, session  # Import all models
+       # Import all models to ensure tables are created
+       from app.models import user, session
+       from app.models.learning_session import LearningSession
+       from app.models.video_recording import VideoRecording
+       
        db_engine = get_engine()
        Base.metadata.create_all(bind=db_engine)
    except Exception as e:
