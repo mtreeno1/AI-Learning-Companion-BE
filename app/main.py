@@ -59,6 +59,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import os
 from app.config import settings
 from app.database import init_db
 from app.routers import auth_router
@@ -109,17 +110,6 @@ async def startup_event():
     print("🚀 FocusFlow API Starting")
     print("=" * 60)
     
-    try:
-        from app.models.user import User
-        from app.models.learning_session import LearningSession
-        from app.models.video_recording import VideoRecording
-        from app.database import Base, engine
-        
-        Base.metadata.create_all(bind=engine)
-        print("✅ Database tables ready")
-    except Exception as e:
-        print(f"⚠️  Database error: {e}")
-    
     # Create recordings directory
     try:
         from pathlib import Path
@@ -129,8 +119,23 @@ async def startup_event():
     except Exception as e:
         print(f"⚠️  Failed to create recordings directory: {e}")
     
-    print(f"📍 Server: http://{settings.API_HOST}:{settings.API_PORT}")
-    print(f"📚 Docs:    http://{settings.API_HOST}:{settings.API_PORT}/docs")
+    # Try to initialize database (non-blocking)
+    try:
+        from app.models.user import User
+        from app.models.learning_session import LearningSession
+        from app.models.video_recording import VideoRecording
+        from app.database import Base, get_engine
+        
+        db_engine = get_engine()
+        Base.metadata.create_all(bind=db_engine)
+        print("✅ Database tables ready")
+    except Exception as e:
+        print(f"⚠️  Database initialization failed: {e}")
+        print("⚠️  Application will start but database features may not work")
+    
+    port = os.environ.get("PORT", settings.API_PORT)
+    print(f"📍 Server: http://{settings.API_HOST}:{port}")
+    print(f"📚 Docs:    http://{settings.API_HOST}:{port}/docs")
     print("=" * 60)
 
 

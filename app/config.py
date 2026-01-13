@@ -1,9 +1,11 @@
 from pydantic_settings import BaseSettings
 from pydantic import Field
+import os
+
 class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "postgresql://postgres:postgres@localhost/focusflow"
-    SECRET_KEY: str = Field(alias="SECRET_KEY")
+    SECRET_KEY: str = Field(default="dev-secret-key-change-in-production", alias="SECRET_KEY")
     ALGORITHM: str = Field(default="HS256", alias="ALGORITHM")
 
 
@@ -17,7 +19,7 @@ class Settings(BaseSettings):
 
     # API
     API_HOST: str = "0.0.0.0"
-    API_PORT: int = 8000
+    API_PORT: int = Field(default=8000)
     
     # CORS - comma-separated list in environment variable
     CORS_ORIGINS: str = "http://localhost:3000,http://localhost:3001"
